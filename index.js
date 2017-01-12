@@ -91,6 +91,9 @@ function handleQuery (req, res, next) {
 app.get('/', handleQuery)
 app.get('/:props', handleQuery)
 
+// be nice and clean up after yourself
+process.on('exit', _ => app.db.close())
+
 // start server if called from cli, otherwise export
 if (module.parent) {
   module.exports = app
