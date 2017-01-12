@@ -13,7 +13,7 @@ fi
 # get field names from one csv, import data via stream
 # conversion recipe inspired by https://thedatachef.blogspot.de/2011/01/convert-tsv-to-json-command-line.html
 echo "Converting data.tsv.bz2 to json"
-FIELDS=$(cat ../data/headers_data_tsv.csv | head -n 1 | sed $'s/\t/,/g')
+export FIELDS=$(cat ../data/headers_data_tsv.csv | head -n 1 | sed $'s/\t/,/g')
 bzip2 -d ../data/data.tsv.bz2 --stdout \
   | ruby -rjson -ne 'puts ENV["FIELDS"].split(",").zip($_.strip.split("\t")).inject({}){|h,x| h[x[0]]=x[1];h}.to_json' \
   | mongoimport --db geocoder --collection data
