@@ -4,7 +4,6 @@
   "repository": "https://github.com/g-div/berlin-opengeo.git",
   "private": true,
   "dependencies": {
-    "apibox": "~0.0.19",
     "csv-express": "^1.1.0",
     "express": "^4.14.0",
     "mongodb": "^2.2.20",
