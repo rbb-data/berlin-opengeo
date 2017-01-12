@@ -1,7 +1,8 @@
 const {
   PORT = 9000,
   DB_URL = 'mongodb://localhost:27017/geocoder',
-  DB_COLLECTION = 'data'
+  DB_COLLECTION = 'data',
+  QUERY_LIMIT = 0
 } = process.env
 
 const express = require('express')
@@ -71,7 +72,7 @@ function handleQuery (req, res, next) {
   }
 
   // simsalabim 🔮
-  app.db.find(query, props).toArray((err, docs) => {
+  app.db.find(query, props).limit(QUERY_LIMIT).toArray((err, docs) => {
     if (err) {
       return res.status(500).send(err.message)
     }
