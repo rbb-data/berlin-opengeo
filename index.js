@@ -72,7 +72,7 @@ function handleQuery (req, res, next) {
   }
 
   // simsalabim 🔮
-  app.db.find(query, props).limit(QUERY_LIMIT).toArray((err, docs) => {
+  app.db.find(query, props).limit(parseInt(QUERY_LIMIT, 10)).toArray((err, docs) => {
     if (err) {
       return res.status(500).send(err.message)
     }
