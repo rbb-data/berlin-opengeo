@@ -8,6 +8,9 @@ const express = require('express')
 const morgan = require('morgan')
 const { MongoClient } = require('mongodb')
 
+// enable csv responses
+require('csv-express')
+
 const app = express()
 app.set('query parser', 'simple')
 app.use(morgan('short'))
@@ -73,7 +76,14 @@ function handleQuery (req, res, next) {
       return res.status(500).send(err.message)
     }
 
-    res.json(docs)
+    switch (req.accepts(['csv', 'json'])) {
+      case 'csv':
+        res.csv(docs, true)
+        break
+      default:
+        // even though the docs say 'should respond with 406 "Not Acceptable"'
+        res.json(docs)
+    }
     next()
   })
 }
