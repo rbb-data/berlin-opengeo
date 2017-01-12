@@ -3,7 +3,7 @@ set -e
 
 # if your mongodb stores data in a folder with to few memory, please chose another one using:
 # mongod --dbpath /lot/of/freespace
-FREE=$(df -h ./ | grep -vE '^Filesystem|tmpfs'| awk '{ print $4 }' | sed -E 's/Gi//')
+FREE=$(df -h ./ | grep -vE '^Filesystem|tmpfs'| awk '{ print $4 }' | sed 's/Gi//' | sed 's/G//')
 if [ $FREE -lt 5 ]; then
 	echo "There are less than 5 GB freespace"
 	echo "Please choose another mongopath:"
