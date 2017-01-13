@@ -8,9 +8,7 @@ const {
 const express = require('express')
 const morgan = require('morgan')
 const { MongoClient } = require('mongodb')
-
-// enable csv responses
-require('csv-express')
+const csv = require('json2csv')
 
 const app = express()
 app.set('query parser', 'simple')
@@ -75,25 +73,34 @@ function handleQuery (req, res, next) {
   const cursor = app.db.find(query, props)
     .limit(parseInt(QUERY_LIMIT, 10))
 
+  let firstResponse = true
   switch (req.accepts(['csv', 'json'])) {
     case 'csv':
-      res.csv(docs, true)
+      res.set({ 'content-type': 'text/csv; charset=utf-8' })
+      cursor
+        .on('data', doc => {
+          res.write(csv({ data: doc, hasCSVColumnTitle: firstResponse }) + '\n')
+          firstResponse = false
+        })
+        .on('end', _ => {
+          res.flush()
+          res.end()
+          next()
+        })
       break
     default:
       // even though the docs say 'should respond with 406 "Not Acceptable"'
       res.set({ 'content-type': 'application/json; charset=utf-8' })
       res.write('[')
-      let firstResponse = true
       cursor
-        .on('data', (doc) => {
+        .on('data', doc => {
           if (!firstResponse) {
             res.write(',')
           }
           res.write(JSON.stringify(doc))
           firstResponse = false
         })
-        .on('end', (_) => {
-          sent = true
+        .on('end', _ => {
           res.write(']')
           res.flush()
           res.end()
