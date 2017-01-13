@@ -72,21 +72,34 @@ function handleQuery (req, res, next) {
   }
 
   // simsalabim 🔮
-  app.db.find(query, props).limit(parseInt(QUERY_LIMIT, 10)).toArray((err, docs) => {
-    if (err) {
-      return res.status(500).send(err.message)
-    }
+  const cursor = app.db.find(query, props)
+    .limit(parseInt(QUERY_LIMIT, 10))
 
-    switch (req.accepts(['csv', 'json'])) {
-      case 'csv':
-        res.csv(docs, true)
-        break
-      default:
-        // even though the docs say 'should respond with 406 "Not Acceptable"'
-        res.json(docs)
-    }
-    next()
-  })
+  switch (req.accepts(['csv', 'json'])) {
+    case 'csv':
+      res.csv(docs, true)
+      break
+    default:
+      // even though the docs say 'should respond with 406 "Not Acceptable"'
+      res.set({ 'content-type': 'application/json; charset=utf-8' })
+      res.write('[')
+      let firstResponse = true
+      cursor
+        .on('data', (doc) => {
+          if (!firstResponse) {
+            res.write(',')
+          }
+          res.write(JSON.stringify(doc))
+          firstResponse = false
+        })
+        .on('end', (_) => {
+          sent = true
+          res.write(']')
+          res.flush()
+          res.end()
+          next()
+        })
+  }
 }
 
 app.get('/', handleQuery)
