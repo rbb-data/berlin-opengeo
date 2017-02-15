@@ -35,13 +35,26 @@ const exactProps = [
   'soldner_hoch', 'soldner_rechts', 'stat_block', 'stat_gebaeude',
   'strassen_nr', 'strassenabschnitt', 'verkehrsflaeche', 'verkehrsteilflaeche'
 ]
-const allProps = fuzzyProps.concat(exactProps).sort()
+const metaProps = [
+  'limit', 'format'
+]
+const allProps = fuzzyProps.concat(exactProps).concat(metaProps).sort()
 
 function handleQuery (req, res, next) {
-  // valid criteria
+  // build up database query from request's query parameters
+  const meta = {
+    'limit': parseInt(QUERY_LIMIT, 10),
+    'format': undefined
+  }
   const query = {}
   for (let field of allProps) {
-    if (req.query[field]) query[field] = req.query[field]
+    if (req.query[field]) {
+      if (metaProps.indexOf(field) === -1) {
+        query[field] = req.query[field]
+      } else {
+        meta[field] = req.query[field]
+      }
+    }
   }
 
   // filter by at least one criterium
@@ -71,10 +84,12 @@ function handleQuery (req, res, next) {
 
   // simsalabim 🔮
   const cursor = app.db.find(query, props)
-    .limit(parseInt(QUERY_LIMIT, 10))
+    .limit(meta.limit)
 
   let firstResponse = true
-  switch (req.accepts(['csv', 'json'])) {
+
+  // use ?format= parameter or "Accepts" header
+  switch (meta.format || req.accepts(['csv', 'json'])) {
     case 'csv':
       res.set({ 'content-type': 'text/csv; charset=utf-8' })
       cursor
@@ -111,6 +126,7 @@ function handleQuery (req, res, next) {
 
 app.get('/', handleQuery)
 app.get('/:props', handleQuery)
+app.get('/one/:props', handleQuery)
 
 // be nice and clean up after yourself
 process.on('exit', _ => app.db.close())
