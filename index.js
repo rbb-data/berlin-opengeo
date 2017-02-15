@@ -36,7 +36,7 @@ const exactProps = [
   'strassen_nr', 'strassenabschnitt', 'verkehrsflaeche', 'verkehrsteilflaeche'
 ]
 const metaProps = [
-  'limit', 'format'
+  'limit', 'format', 'fuzzy'
 ]
 const allProps = fuzzyProps.concat(exactProps).concat(metaProps).sort()
 
@@ -44,7 +44,8 @@ function handleQuery (req, res, next) {
   // build up database query from request's query parameters
   const meta = {
     'limit': QUERY_LIMIT,
-    'format': undefined
+    'format': undefined,
+    'fuzzy': '0'
   }
   const query = {}
   for (let field of allProps) {
@@ -66,9 +67,11 @@ function handleQuery (req, res, next) {
   }
 
   // enable partial matching for string queries
-  for (let q of Object.keys(query)) {
-    if (fuzzyProps.indexOf(q) !== -1) {
-      query[q] = new RegExp(query[q])
+  if (meta.fuzzy !== '0') {
+    for (let q of Object.keys(query)) {
+      if (fuzzyProps.indexOf(q) !== -1) {
+        query[q] = new RegExp(query[q])
+      }
     }
   }
 
