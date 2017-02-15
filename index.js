@@ -45,7 +45,7 @@ function handleQuery (req, res, next) {
   const meta = {
     'limit': QUERY_LIMIT,
     'format': undefined,
-    'fuzzy': '0'
+    'fuzzy': '1'
   }
   const query = {}
   for (let field of allProps) {
@@ -87,7 +87,7 @@ function handleQuery (req, res, next) {
 
   // simsalabim 🔮
   const cursor = app.db.find(query, props)
-    .limit(parseInt(meta.limit, 10))
+    .limit(meta.limit)
 
   let firstResponse = true
 
@@ -129,7 +129,6 @@ function handleQuery (req, res, next) {
 
 app.get('/', handleQuery)
 app.get('/:props', handleQuery)
-app.get('/one/:props', handleQuery)
 
 // be nice and clean up after yourself
 process.on('exit', _ => app.db.close())
