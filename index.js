@@ -43,7 +43,7 @@ const allProps = fuzzyProps.concat(exactProps).concat(metaProps).sort()
 function handleQuery (req, res, next) {
   // build up database query from request's query parameters
   const meta = {
-    'limit': parseInt(QUERY_LIMIT, 10),
+    'limit': QUERY_LIMIT,
     'format': undefined
   }
   const query = {}
@@ -84,7 +84,7 @@ function handleQuery (req, res, next) {
 
   // simsalabim 🔮
   const cursor = app.db.find(query, props)
-    .limit(meta.limit)
+    .limit(parseInt(meta.limit, 10))
 
   let firstResponse = true
 
