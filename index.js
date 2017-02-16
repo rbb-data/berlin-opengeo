@@ -87,7 +87,7 @@ function handleQuery (req, res, next) {
 
   // simsalabim 🔮
   const cursor = app.db.find(query, props)
-    .limit(meta.limit)
+    .limit(parseInt(meta.limit, 10))
 
   let firstResponse = true
 
