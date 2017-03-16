@@ -1,18 +1,20 @@
 const {
   PORT = 9000,
-  DB_URL = 'mongodb://localhost:27017/geocoder',
+  DB_URL = 'mongodb://localhost:21017/geocoder',
   DB_COLLECTION = 'data',
   QUERY_LIMIT = 0
 } = process.env
 
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 const { MongoClient } = require('mongodb')
 const csv = require('json2csv')
 
 const app = express()
 app.set('query parser', 'simple')
 app.use(morgan('short'))
+app.use(cors())
 
 MongoClient.connect(DB_URL, (err, db) => {
   if (err) {
@@ -40,14 +42,18 @@ const metaProps = [
 ]
 const allProps = fuzzyProps.concat(exactProps).concat(metaProps).sort()
 
-function handleQuery (req, res, next) {
+/**
+ * Route to return all possible matches for a single adress
+ */
+app.get(['/', '/:props'], function handleSingleAddress (req, res, next) {
   // build up database query from request's query parameters
-  const meta = {
+  let meta = {
     'limit': QUERY_LIMIT,
     'format': undefined,
     'fuzzy': '1'
   }
-  const query = {}
+
+  let query = {}
   for (let field of allProps) {
     if (req.query[field]) {
       if (metaProps.indexOf(field) === -1) {
@@ -63,7 +69,10 @@ function handleQuery (req, res, next) {
     const fields = allProps
       .map(prop => `  - ${prop}${fuzzyProps.indexOf(prop) !== -1 ? ' (fuzzy)' : ''}`)
       .join('\n')
-    return res.status(400).send(`Please enter at least one of the following filters: ${'\n' + fields}`)
+    return res
+      .status(400)
+      .type('text/plain')
+      .send(`Please enter at least one of the following filters:\n\n${fields}`)
   }
 
   // enable partial matching for string queries
@@ -78,9 +87,9 @@ function handleQuery (req, res, next) {
   // enable users to filter returned properties by appending them to the URL,
   // separated by comma. No filter means all propertes.
   // Unknown properties are ignored.
-  const props = {}
   const requestedProps = (req.params.props ? req.params.props.split(',') : allProps)
     .filter(prop => allProps.indexOf(prop) !== -1)
+  let props = {}
   for (let p of requestedProps) {
     props[p] = 1
   }
@@ -125,10 +134,7 @@ function handleQuery (req, res, next) {
           next()
         })
   }
-}
-
-app.get('/', handleQuery)
-app.get('/:props', handleQuery)
+})
 
 // be nice and clean up after yourself
 process.on('exit', _ => app.db.close())
