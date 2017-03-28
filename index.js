@@ -166,6 +166,7 @@ app.get(['/', '/:projection'], function handleSingleAddress (req, res, next) {
  * match
  */
 app.post(['/bulk', '/bulk/:projection'], function handleBulkGeocoding (req, res, next) {
+  console.log(req.body)
   if (!Array.isArray(req.body)) {
     return res.status(400)
       .type('text/plain')
@@ -200,6 +201,9 @@ ${allProps.sort().map(p => ' - ' + p).join('\n')}`)
     }
   }
 
+  // TODO: Add smarts to database query
+  // TODO: Return only unique results
+
   // we geocode the adresses by keeping the objects "as they are", and merge
   // them with the requested properties from the database
   Promise.all(
@@ -229,7 +233,7 @@ ${allProps.sort().map(p => ' - ' + p).join('\n')}`)
     }))
     .then(results => {
       // merge original field with our results, where duplicate fields are overwritten
-      const merged = req.body.map((address, i) => Object.assign({}, address, results[i]))
+      const merged = req.body.map((address, i) => Object.assign({}, address, emptyResponse, results[i]))
       switch (format || req.accepts(['csv', 'json'])) {
         case 'csv':
           res.type('csv')
