@@ -1,0 +1,10 @@
+{
+  "ecmaVersion": 6,
+  "libs": [
+    "chai"
+  ],
+  "loadEagerly": [],
+  "plugins": {
+    "node-express": {}
+  }
+}

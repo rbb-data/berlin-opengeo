@@ -17,7 +17,7 @@ const csv = require('json2csv')
 
 const app = express()
 
-const populateQuery = require('./utils/populate-query')
+const buildQuery = require('./utils/build-query')
 const smartQuery = require('./utils/smart-query')
 
 // parse query strings
@@ -207,7 +207,7 @@ ${allProps.sort().map(p => ' - ' + p).join('\n')}`)
   // improve our results
   const retrievableProps = exactProps.concat(fuzzyProps)
   const queries = req.body
-    .map(address => populateQuery(address, representation, retrievableProps))
+    .map(address => buildQuery(address, representation, retrievableProps))
     .map(query => smartQuery(query))
 
   Promise.all(queries.map(query => app.db.findOne(query)))

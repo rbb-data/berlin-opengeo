@@ -10,7 +10,7 @@
  * @param  {Array}  retrievableProps    An array of strings of all properties
  * @return {Object}                     A MongoDB query
  */
-module.exports = function populateQuery (row, representation, retrievableProps) {
+module.exports = function build (row, representation, retrievableProps) {
   let query = {}
   for (let rep in representation) {
     if (representation.hasOwnProperty(rep) && retrievableProps.indexOf(rep) !== -1) {

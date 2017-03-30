@@ -13,9 +13,14 @@
 	},
 	"scripts": {
 		"serve": "node index.js",
-		"dev": "nodemon index.js"
+		"dev": "nodemon index.js",
+    "test": "standard && mocha test/**/*.js"
 	},
 	"devDependencies": {
-		"nodemon": "^1.11.0"
+		"nodemon": "^1.11.0",
+		"standard": "*",
+		"mocha": "*",
+		"chai": "*",
+		"tern-node-express": "*"
 	}
 }
