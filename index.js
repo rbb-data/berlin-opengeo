@@ -17,6 +17,9 @@ const csv = require('json2csv')
 
 const app = express()
 
+const populateQuery = require('./utils/populate-query')
+const smartQuery = require('./utils/smart-query')
+
 // parse query strings
 app.set('query parser', 'simple')
 
@@ -174,7 +177,6 @@ app.post(['/bulk', '/bulk/:projection'], function handleBulkGeocoding (req, res,
   }
 
   const format = req.query.format
-  const fuzzy = req.query.fuzzy || '0'
 
   // get mapping from the query; it's given as query params, looking like `fieldname_in_db=fieldname_in_csv`
   let representation = {}
@@ -201,35 +203,17 @@ ${allProps.sort().map(p => ' - ' + p).join('\n')}`)
     }
   }
 
-  // TODO: Add smarts to database query
-  // TODO: Return only unique results
+  // build the query for each adress in the post body and work some magic to
+  // improve our results
+  const retrievableProps = exactProps.concat(fuzzyProps)
+  const queries = req.body
+    .map(address => populateQuery(address, representation, retrievableProps))
+    .map(query => smartQuery(query))
 
-  // we geocode the adresses by keeping the objects "as they are", and merge
-  // them with the requested properties from the database
-  Promise.all(
-    req.body.map(address => {
-      // build the query for each adress in the object
-      let query = {}
-      for (let rep in representation) {
-        if (representation.hasOwnProperty(rep) && allProps.indexOf(rep) !== -1) {
-          query[rep] = address[representation[rep]]
-        }
-      }
-
-      // enable fuzzy matching if requested
-      if (fuzzy === '1') {
-        for (let k in query) {
-          if (query.hasOwnProperty(k)) query[k] = new RegExp(query[k])
-        }
-      }
-
-      // make sure only unambiguous results are returned
-      return app.db.find(query, projection)
-        .limit(2)
-        .then(results => results.length === 1 ? results[0] : {})
-    }))
+  Promise.all(queries.map(query => app.db.findOne(query)))
+    // merge original field with our results (duplicate fields are overwritten)
+    // and send back the response
     .then(results => {
-      // merge original field with our results, where duplicate fields are overwritten
       const merged = req.body.map((address, i) => Object.assign({}, address, emptyResponse, results[i]))
       switch (format || req.accepts(['csv', 'json'])) {
         case 'csv':
