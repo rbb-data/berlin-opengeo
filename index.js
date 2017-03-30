@@ -211,12 +211,6 @@ ${allProps.sort().map(p => ' - ' + p).join('\n')}`)
       // build the query for each adress in the object
       let query = {}
       for (let rep in representation) {
-        // if (address[representation[rep]] == null || address[representation[rep]] === '') {}
-          // Skip rows where one or more fields that have a representation are (i.e. are queried for)
-          // are empty to have more predicatable results
-          // return Promise.resolve(emptyResponse)
-        // }
-
         if (representation.hasOwnProperty(rep) && allProps.indexOf(rep) !== -1) {
           query[rep] = address[representation[rep]]
         }
@@ -229,7 +223,10 @@ ${allProps.sort().map(p => ' - ' + p).join('\n')}`)
         }
       }
 
-      return app.db.findOne(query, projection)
+      // make sure only unambiguous results are returned
+      return app.db.find(query, projection)
+        .limit(2)
+        .then(results => results.length === 1 ? results[0] : {})
     }))
     .then(results => {
       // merge original field with our results, where duplicate fields are overwritten
