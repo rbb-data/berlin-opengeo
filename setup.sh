@@ -14,7 +14,7 @@ fi
 # conversion recipe inspired by https://thedatachef.blogspot.de/2011/01/convert-tsv-to-json-command-line.html
 echo "→ Importing data.tsv.bz2 into the database"
 export FIELDS=$(cat ../data/headers_data.tsv | head -n 1 | sed $'s/\t/,/g')
-bzip2 -d ../data/data.tsv.bz2 --stdout \
+bzcat ../data/data.uniq.tsv.bz2 \
  | ruby -rjson -ne 'puts ENV["FIELDS"].split(",").zip($_.strip.split("\t")).inject({}){|h,x| h[x[0]]=x[1];h}.to_json' \
  | mongoimport --port 21080 --db geocoder --collection data
 
@@ -36,11 +36,11 @@ CONVERT_LATLON="
   db.data.find().forEach(function (doc) {
     bulkOps.push({
       updateOne: {
-        filter: { '_id': doc._id },
+        filter: { _id: doc._id },
         update: {
-          '\$set': {
-            'lat': +(doc.lat),
-            'lon': +(doc.lon)
+          \$set: {
+            lat: +(doc.lat),
+            lon: +(doc.lon)
           }
         }
       }
@@ -48,7 +48,7 @@ CONVERT_LATLON="
   })
 
   db.data.bulkWrite(bulkOps)
- "
+"
 mongo localhost:21080/geocoder --eval "$CONVERT_LATLON"
 
 echo "→ Done!"
