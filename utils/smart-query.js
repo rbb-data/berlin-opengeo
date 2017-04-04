@@ -11,8 +11,13 @@ module.exports = function smartQuery (query) {
   const lowerCaseStreet = /(strasse|str\.)(\b|$)/
 
   // first the obvious stuff:
-  // - everything is trimmed
-  for (let k of Object.keys(query)) if (typeof query[k] === 'string') query[k] = query[k].trim()
+  for (let k of Object.keys(query)) {
+    // cast everything that's not latitude or longitude to a string
+    if (k !== 'lat' && k !== 'lon') query[k] = String(query[k])
+
+    // trim everything
+    if (typeof query[k] === 'string') query[k] = query[k].trim()
+  }
 
   if (query.str_hnr != null) {
     // - if a street + housenr is comined with an ending letter, it's always

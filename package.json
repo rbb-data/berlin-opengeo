@@ -4,23 +4,25 @@
 	"repository": "https://github.com/g-div/berlin-opengeo.git",
 	"private": true,
 	"dependencies": {
+		"body-parser": "*",
 		"cors": "^2.8.1",
 		"express": "^4.14.0",
 		"json2csv": "^3.7.3",
 		"mongodb": "^2.2.20",
 		"morgan": "^1.7.0",
-		"body-parser": "*"
+		"log": "*"
 	},
 	"scripts": {
 		"serve": "node index.js",
 		"dev": "nodemon index.js",
-    "test": "standard && mocha test/**/*.js"
+		"test": "standard && mocha test/**/*.js"
 	},
 	"devDependencies": {
 		"nodemon": "^1.11.0",
 		"standard": "*",
 		"mocha": "*",
 		"chai": "*",
-		"tern-node-express": "*"
+		"tern-node-express": "*",
+		"supertest": "*"
 	}
 }

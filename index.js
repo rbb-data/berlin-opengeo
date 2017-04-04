@@ -5,7 +5,8 @@ const {
   QUERY_LIMIT = 0
 } = process.env
 
-const util = require('util') // eslint-disable-line no-unused-vars
+const Log = require('log')
+const log = new Log()
 
 const express = require('express')
 const morgan = require('morgan')
@@ -26,7 +27,7 @@ app.set('query parser', 'simple')
 MongoClient.connect(DB_URL)
   .then(db => {
     app.db = db.collection(DB_COLLECTION)
-    console.log(`Connected to database at ${DB_URL}`)
+    if (!module.parent) console.log(`Connected to database at ${DB_URL}`)
   })
   .catch(err => {
     console.error(err)
@@ -34,7 +35,7 @@ MongoClient.connect(DB_URL)
   })
 
 // logging
-app.use(morgan('short'))
+if (!module.parent) app.use(morgan('short'))
 
 // wildcard CORS header
 app.use(cors())
@@ -42,21 +43,8 @@ app.use(cors())
 // parse JSON POST bodies
 app.use(bodyParser.json({ limit: '5mb' }))
 
-const fuzzyProps = [
-  'bezirk', 'finanzamt', 'karten', 'lor_bzr', 'lor_pgr', 'lor_plr', 'ortsteil', 'str_hnr',
-  'strasse'
-]
-
-const exactProps = [
-  'bezirk_nr', 'einschulungsbezirk', 'etrs89_hoch', 'etrs89_rechts',
-  'finanzamt_nr', 'hnr', 'hnr_2', 'lat', 'lon', 'lor_bzr', 'lor_bzr_nr',
-  'lor_pgr_nr', 'lor_plr_nr', 'mittelbereich', 'ortsteil_nr', 'plz',
-  'soldner_hoch', 'soldner_rechts', 'stat_block', 'stat_gebaeude',
-  'strassen_nr', 'strassenabschnitt', 'verkehrsflaeche', 'verkehrsteilflaeche'
-]
-const metaProps = [
-  'limit', 'format', 'fuzzy'
-]
+const { exactProps, fuzzyProps } = require('./config')
+const metaProps = ['limit', 'format', 'fuzzy']
 const allProps = fuzzyProps.concat(exactProps).concat(metaProps).sort()
 
 /**
@@ -169,7 +157,6 @@ app.get(['/', '/:projection'], function handleSingleAddress (req, res, next) {
  * match
  */
 app.post(['/bulk', '/bulk/:projection'], function handleBulkGeocoding (req, res, next) {
-  console.log(req.body)
   if (!Array.isArray(req.body)) {
     return res.status(400)
       .type('text/plain')
@@ -210,6 +197,9 @@ ${allProps.sort().map(p => ' - ' + p).join('\n')}`)
     .map(address => buildQuery(address, representation, retrievableProps))
     .map(query => smartQuery(query))
 
+  log.debug('body', req.body.slice(0, 5))
+  log.debug('query', queries.slice(0, 5))
+
   Promise.all(queries.map(query => app.db.findOne(query)))
     // merge original field with our results (duplicate fields are overwritten)
     // and send back the response
@@ -229,7 +219,7 @@ ${allProps.sort().map(p => ' - ' + p).join('\n')}`)
 })
 
 // be nice and clean up after yourself
-process.on('exit', _ => app.db.close())
+process.on('exit', _ => app.db && typeof app.db.close === 'function' && app.db.close())
 
 // start server if called from cli, otherwise export
 if (module.parent) {
