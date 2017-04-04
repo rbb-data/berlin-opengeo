@@ -5,6 +5,8 @@
   ],
   "loadEagerly": [],
   "plugins": {
-    "node-express": {}
+    "node-express": {},
+    "node": {},
+    "doc_comment": {"strong": true}
   }
 }
