@@ -29,7 +29,26 @@ CREATE_INDICES="
 mongo localhost:21080/geocoder --eval "$CREATE_INDICES"
 
 echo "→ Converting latitude and longitude"
-CONVERT_LATLON="db.data.find().forEach(function (doc) { doc.lat = +(doc.lat); doc.lon = +(doc.lon); db.data.save(doc); })"
+CONVERT_LATLON="
+  // bulk'd latitude longitude conversion
+  var bulkOps = []
+
+  db.data.find().forEach(function (doc) {
+    bulkOps.push({
+      updateOne: {
+        filter: { '_id': doc._id },
+        update: {
+          '\$set': {
+            'lat': +(doc.lat),
+            'lon': +(doc.lon)
+          }
+        }
+      }
+    })
+  })
+
+  db.data.bulkWrite(bulkOps)
+ "
 mongo localhost:21080/geocoder --eval "$CONVERT_LATLON"
 
 echo "→ Done!"
