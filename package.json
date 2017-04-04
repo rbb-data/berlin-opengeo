@@ -13,9 +13,10 @@
 		"log": "*"
 	},
 	"scripts": {
-		"serve": "node index.js",
-		"dev": "nodemon index.js",
-		"test": "standard && mocha test/**/*.js"
+		"start": "node index.js",
+		"test": "standard && mocha test/{**/*,*}.js",
+    "dev": "nodemon -e js index.js",
+    "dev-test": "mocha --watch --reporter min test/{**/*,*}.js"
 	},
 	"devDependencies": {
 		"nodemon": "^1.11.0",

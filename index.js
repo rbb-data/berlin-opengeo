@@ -5,8 +5,8 @@ const {
   QUERY_LIMIT = 0
 } = process.env
 
-const Log = require('log')
-const log = new Log()
+const Log = require('log') // eslint-disable-line no-unused-vars
+const log = new Log() // eslint-disable-line no-unused-vars
 
 const express = require('express')
 const morgan = require('morgan')
@@ -197,10 +197,15 @@ ${allProps.sort().map(p => ' - ' + p).join('\n')}`)
     .map(address => buildQuery(address, representation, retrievableProps))
     .map(query => smartQuery(query))
 
-  log.debug('body', req.body.slice(0, 5))
-  log.debug('query', queries.slice(0, 5))
+  // log.debug('body', req.body.slice(0, 5))
+  // log.debug('query', queries.slice(0, 5))
 
-  Promise.all(queries.map(query => app.db.findOne(query)))
+  Promise.all(queries.map(query => app.db.find(query).limit(2)))
+    // return only those results that are unambiguous
+    .then(cursors =>
+      Promise.all(cursors.map(c => c.toArray()))
+        .then(results => results.map(result => result.length === 1 ? result[0] : {}))
+    )
     // merge original field with our results (duplicate fields are overwritten)
     // and send back the response
     .then(results => {
