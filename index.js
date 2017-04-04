@@ -200,7 +200,7 @@ ${allProps.sort().map(p => ' - ' + p).join('\n')}`)
   // log.debug('body', req.body.slice(0, 5))
   // log.debug('query', queries.slice(0, 5))
 
-  Promise.all(queries.map(query => app.db.find(query).limit(2)))
+  Promise.all(queries.map(query => app.db.find(query, projection).limit(2)))
     // return only those results that are unambiguous
     .then(cursors =>
       Promise.all(cursors.map(c => c.toArray()))

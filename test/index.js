@@ -7,7 +7,8 @@ const request = require('supertest')
 const app = require('../index')
 
 const fixtures = {
-  emptyHouses: require('./fixtures/leerstand.json')
+  emptyHouses: require('./fixtures/leerstand.json'),
+  regulatoryAgency: require('./fixtures/ordnungsamt.json')
 }
 
 describe('api', function () {
@@ -64,8 +65,69 @@ describe('api', function () {
         .expect(200, done)
     })
 
-    it('should produce the exact same response when a result is sent again')
-    it('should not care about input types and convert them automatically')
+    it('should return the properties that we asked for in the url', function (done) {
+      const props = Object.keys(fixtures.regulatoryAgency[0]).concat(['plz', 'ortsteil'])
+
+      request(app)
+        .post('/bulk/plz,ortsteil')
+        .query({ 'str_hnr': 'street', 'ortsteil': 'area' })
+        .set('Content-Type', 'application/json')
+        .set('Accept', 'application/json')
+        .send(fixtures.regulatoryAgency.slice(0, 20))
+        .expect(200)
+        .then(res => {
+          res.body.forEach(result => {
+            Object.keys(result)
+              .filter(k => k !== '_id')
+              .forEach(k => {
+                expect(props).to.include(k)
+              })
+          })
+          done()
+        })
+    })
+
+    it('should produce the exact same response when a result is sent again', function (done) {
+      let testCase = request(app)
+        .post('/bulk/lor_plr,lor_plr_nr')
+        .query({ 'str_hnr': 'str_hnr' })
+        .set('Content-Type', 'application/json')
+        .set('Accept', 'application/json')
+
+      testCase
+        .send(fixtures.regulatoryAgency.slice(0, 10))
+        .expect(200)
+        .then(res1 => {
+          testCase
+            .send(res1)
+            .expect(200)
+            .then(res2 => {
+              expect(res1).to.deep.equal(res2)
+              done()
+            })
+        })
+    })
+
+    it('should not care about input types and convert them automatically', function (done) {
+      let testCase = request(app)
+        .post('/bulk/str_hnr,plz')
+        .query({ 'str_hnr': 'str_hnr', 'plz': 'plz' })
+        .set('Content-Type', 'application/json')
+        .set('Accept', 'application/json')
+
+      testCase
+        .send([{ str_hnr: 'Elsenstraße 110', plz: '12435' }])
+        .expect(200)
+        .then(res1 => {
+          testCase
+            .send([{ str_hnr: 'Elsenstraße 110', plz: 12435 }])
+            .expect(200)
+            .then(res2 => {
+              expect(res1.body).to.deep.equal(res2.body)
+              done()
+            })
+        })
+    })
 
     it('should only return results that are unambiguous', function (done) {
       request(app)
