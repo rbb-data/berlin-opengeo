@@ -4,28 +4,34 @@ berlin-opengeo
 An Open Source geocoder for Berlin based on the data published [here](http://datenjournalist.de/strassen-und-hausnummern-in-berlin-mit-geokoordinaten-als-open-data/).
 
 ## Installation
-    git clone git@github.com:g-div/berlin-opengeo.git
-    cd berlin-opengeo
-    chmod +x setup.sh
-    ./setup.sh
-    npm install
+
+``` bash
+$ git clone git@github.com:g-div/berlin-opengeo.git
+$ cd berlin-opengeo
+$ chmod +x setup.sh
+$ ./setup.sh
+$ npm install
+```
 
 ## Start
-    apibox-serve
-    
-or
-    
-    apibox-cli
 
-for the command-line interface.
+``` bash
+$ npm start
+```
 
-## API Documentation
+## Environment Variables
 
-Open your browser at [http://localhost:9987/docs/](http://localhost:9987/docs/) to visit the API documentation
+The Api is configurable via the following environment variables (the values below are the default values):
 
+```
+PORT = 9000                                     # HTTP Port
+DB_URL = 'mongodb://localhost:21017/geocoder'   # MongoDB URI String
+DB_COLLECTION = 'data'                          # MongoDB collection name
+QUERY_LIMIT = 0                                 # Max results returned by a query (0 = infinite)
+```
 
 ### Requirements:
-- **~5 GB** of **FREESPACE**
+- **~2 GB** of **FREE SPACE**
 - bz2
 - ruby
 - MongoDB
