@@ -1,6 +1,18 @@
 #!/bin/bash
 set -uxe
 
+# for config
+DB_HOST="localhost"
+DB_PORT="27017"
+DB_NAME="geocoder"
+DB_COLLECTION="data"
+
+###
+# !! you shouldn't need to touch anything below !!
+##
+
+DB_URL="mongodb://$DB_HOST:$DB_PORT/$DB_NAME"
+
 # if your mongodb stores data in a folder with to few memory, please chose another one using:
 # mongod --dbpath /lot/of/freespace
 FREE=$(df -h ./ | grep -vE '^Filesystem|tmpfs'| awk '{ print $4 }' | sed 's/Gi//' | sed 's/G//')
@@ -16,7 +28,7 @@ echo "→ Importing data.tsv.bz2 into the database"
 export FIELDS=$(cat ../data/headers_data.tsv | head -n 1 | sed $'s/\t/,/g')
 bzcat ../data/data.uniq.tsv.bz2 \
  | ruby -rjson -ne 'puts ENV["FIELDS"].split(",").zip($_.strip.split("\t")).inject({}){|h,x| h[x[0]]=x[1];h}.to_json' \
- | mongoimport --port 27017 --db geocoder --collection data
+ | mongoimport --host "$DB_HOST" --port "$DB_PORT" --db "$DB_NAME" --collection "$DB_COLLECTION"
 
 echo "→ Creating indices"
 CREATE_INDICES="
@@ -26,7 +38,7 @@ CREATE_INDICES="
   db.data.createIndex({ strasse: 1 })
   db.data.createIndex({ plz: 1 })
 "
-mongo localhost:27017/geocoder --eval "$CREATE_INDICES"
+mongo "$DB_URL" --eval "$CREATE_INDICES"
 
 echo "→ Converting latitude and longitude"
 CONVERT_LATLON="
@@ -49,6 +61,6 @@ CONVERT_LATLON="
 
   db.data.bulkWrite(bulkOps)
 "
-mongo localhost:27017/geocoder --eval "$CONVERT_LATLON"
+mongo "$DB_URL" --eval "$CONVERT_LATLON"
 
 echo "→ Done!"
