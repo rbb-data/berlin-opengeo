@@ -16,7 +16,7 @@ echo "→ Importing data.tsv.bz2 into the database"
 export FIELDS=$(cat ../data/headers_data.tsv | head -n 1 | sed $'s/\t/,/g')
 bzcat ../data/data.uniq.tsv.bz2 \
  | ruby -rjson -ne 'puts ENV["FIELDS"].split(",").zip($_.strip.split("\t")).inject({}){|h,x| h[x[0]]=x[1];h}.to_json' \
- | mongoimport --port 21080 --db geocoder --collection data
+ | mongoimport --port 27017 --db geocoder --collection data
 
 echo "→ Creating indices"
 CREATE_INDICES="
@@ -26,7 +26,7 @@ CREATE_INDICES="
   db.data.createIndex({ strasse: 1 })
   db.data.createIndex({ plz: 1 })
 "
-mongo localhost:21080/geocoder --eval "$CREATE_INDICES"
+mongo localhost:27017/geocoder --eval "$CREATE_INDICES"
 
 echo "→ Converting latitude and longitude"
 CONVERT_LATLON="
@@ -49,6 +49,6 @@ CONVERT_LATLON="
 
   db.data.bulkWrite(bulkOps)
 "
-mongo localhost:21080/geocoder --eval "$CONVERT_LATLON"
+mongo localhost:27017/geocoder --eval "$CONVERT_LATLON"
 
 echo "→ Done!"

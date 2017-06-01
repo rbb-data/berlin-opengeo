@@ -1,0 +1,17 @@
+version: "3"
+services:
+    api:
+        build: .
+        ports:
+            - 9000:9000
+        volumes:
+            - .:/usr/src/app
+        environment:
+            DB_URL: "mongodb://database/geocoder"
+        depends_on:
+            - database
+    database:
+        image: "mvertes/alpine-mongo"
+        ports:
+            # expose ports for debugging purposes
+            - 27017:27017
