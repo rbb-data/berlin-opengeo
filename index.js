@@ -88,9 +88,10 @@ app.get(['/', '/:projection'], function handleSingleAddress (req, res, next) {
 
   // enable partial matching for string queries
   if (meta.fuzzy !== '0') {
+    const regexOperators = /[|\\{}()[\]^$+*?.]/g // taken from https://github.com/sindresorhus/escape-string-regexp/blob/7fe01ba/index.js
     for (let k in query) {
       if (query.hasOwnProperty(k) && fuzzyProps.indexOf(k) !== -1) {
-        query[k] = new RegExp(query[k])
+        query[k] = new RegExp(query[k].replace(regexOperators, '\\$&'))
       }
     }
   }
