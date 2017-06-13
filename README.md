@@ -37,5 +37,3 @@ QUERY_LIMIT = 0                                 # Max results returned by a quer
 - MongoDB
 - Node.js
 - npm
-
-Built on top of [apibox](https://github.com/g-div/apibox)
