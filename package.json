@@ -1,8 +1,9 @@
 {
-	"name": "geocoder",
+	"name": "berlin-opengeo",
 	"version": "0.0.1",
-	"repository": "https://github.com/g-div/berlin-opengeo.git",
+	"repository": "https://github.com/rbb-data/berlin-opengeo.git",
 	"private": true,
+  "license": "MIT",
 	"dependencies": {
 		"body-parser": "*",
 		"cors": "^2.8.1",
